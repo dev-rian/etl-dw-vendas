@@ -3,12 +3,6 @@ from pyspark.sql import functions as f
 from pyspark.sql.types import IntegerType
 
 def criar_spark_session():
-    """
-    Cria e retorna uma sessão Spark.
-    É necessário ter o driver JDBC do PostgreSQL no classpath.
-    Exemplo de como executar o script:
-    spark-submit --jars /path/to/postgresql-42.2.23.jar etl_pyspark.py
-    """
     spark = SparkSession.builder \
         .appName("ETL Global Retail") \
         .config("spark.jars.packages", "org.postgresql:postgresql:42.2.23") \
@@ -16,9 +10,6 @@ def criar_spark_session():
     return spark
 
 def extrair_dados(spark, url, properties):
-    """
-    Extrai dados do banco de dados transacional usando uma query consolidada.
-    """
     query = """
     (SELECT
         v.id_venda,
@@ -94,9 +85,6 @@ def transformar_dados(df):
     return dim_cliente, dim_produto, dim_localidade, dim_tempo, df
 
 def carregar_dados(dim_cliente, dim_produto, dim_localidade, dim_tempo, df_transformado, url_dw, properties_dw):
-    """
-    Carrega os DataFrames de dimensão e fato no Data Warehouse.
-    """
     # Ordem de carga: Dimensões primeiro
     dim_cliente.write.jdbc(url=url_dw, table="dim_cliente", mode="overwrite", properties=properties_dw)
     dim_produto.write.jdbc(url=url_dw, table="dim_produto", mode="overwrite", properties=properties_dw)
@@ -136,17 +124,14 @@ def carregar_dados(dim_cliente, dim_produto, dim_localidade, dim_tempo, df_trans
 
 
 def main():
-    """
-    Orquestra o processo de ETL.
-    """
     spark = criar_spark_session()
 
     # Configurações de conexão
     db_url_crm = "jdbc:postgresql://localhost:5432/crm"
-    db_properties_crm = {"user": "postgres", "password": "password", "driver": "org.postgresql.Driver"}
+    db_properties_crm = {"user": "root", "password": "35263646", "driver": "org.postgresql.Driver"}
 
     db_url_dw = "jdbc:postgresql://localhost:5432/dw"
-    db_properties_dw = {"user": "postgres", "password": "password", "driver": "org.postgresql.Driver"}
+    db_properties_dw = {"user": "root", "password": "35263646", "driver": "org.postgresql.Driver"}
 
     # Extração
     df_origem = extrair_dados(spark, db_url_crm, db_properties_crm)
